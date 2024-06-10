@@ -1,25 +1,56 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import "./App.css";
 import { v4 as uuidv4 } from 'uuid';
 import List from './components/List/List';
 function App() {
   const [text, setText] = useState('');
   const [todoList, setTodolist] = useState([]);
+  const isListenerAdded = useRef(false);
 
   const addItem = () => {
-    const newTodoItem = {
-      id: uuidv4(),
-      item: text,
-      done: false
+    if (text !== '') {
+      const newTodoItem = {
+        id: uuidv4(),
+        item: text,
+        done: false
+      }
+      setTodolist([...todoList, newTodoItem])
+      setText('');
     }
-    setTodolist([...todoList, newTodoItem])
-    setText('');
+  }
+
+  useEffect(() => {
+    const handleDelKey = (event) => {
+      if (event.key === 'Delete') {
+        if (todoList.some((listItem) => listItem.done === true)) {
+          if (window.confirm('Are you Sure you want to Delete?')) {
+            console.log('del key pressed')
+            const newItemList = todoList.filter((listItem) => listItem.done === false)
+            setTodolist(newItemList);
+          }
+        }
+        else {
+          alert('Select item to delete first')
+        }
+      }
+    }
+
+
+    document.addEventListener('keydown', handleDelKey);
+    isListenerAdded.current = true
+    return () => { document.removeEventListener('keydown', handleDelKey) };
+  }, [todoList])
+
+
+  const addItemWithEnterKey = (event) => {
+    if (event.key === 'Enter')
+      addItem();
   }
 
   const handleToggle = (itemID) => {
     const newItemList = todoList.map((listItem) => {
       if (listItem.id === itemID) {
-        return {...listItem, done : !listItem.done}
+        return { ...listItem, done: !listItem.done }
       }
       return listItem;
     })
@@ -27,7 +58,7 @@ function App() {
   }
 
   const handleDelete = (itemID) => {
-    const newItemList = todoList.filter((listItem) => listItem.id!==itemID)
+    const newItemList = todoList.filter((listItem) => listItem.id !== itemID)
     setTodolist(newItemList);
   }
 
@@ -40,10 +71,11 @@ function App() {
         <input type='text'
           placeholder='Enter Item'
           value={text}
-          onChange={(e) => setText(e.target.value)} />
-        <span onClick={addItem}>+</span>
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={addItemWithEnterKey} />
+        <span onClick={addItem} >+</span>
       </div>
-      <List todoList={todoList} handleToggle={handleToggle} handleDelete={handleDelete}/>
+      <List todoList={todoList} handleToggle={handleToggle} handleDelete={handleDelete} />
 
     </div>
   );

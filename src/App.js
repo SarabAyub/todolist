@@ -58,8 +58,11 @@ function App() {
   }
 
   const handleDelete = (itemID) => {
-    const newItemList = todoList.filter((listItem) => listItem.id !== itemID)
-    setTodolist(newItemList);
+    if (window.confirm('Are you Sure you want to Delete?')) {
+      console.log('del key pressed')
+      const newItemList = todoList.filter((listItem) => listItem.id !== itemID)
+      setTodolist(newItemList);
+    }
   }
 
   console.log('Item', todoList);
